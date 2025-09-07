@@ -1,0 +1,34 @@
+version: 2
+
+models:
+  - name: stg_cities
+    columns:
+      - name: city_id
+        tests:
+          - not_null
+          - unique
+
+  - name: stg_departments
+    columns:
+      - name: department_id
+        tests:
+          - not_null
+          - unique
+      - name: department
+        tests:
+          - accepted_values:
+              values: ["General Surgery", "Orthopedics", "Pediatrics", "Cardiology", "Neurology"]
+
+  - name: stg_diagnoses
+    columns:
+      - name: diagnosis_id
+        tests:
+          - not_null
+          - unique
+
+  - name: stg_insurance
+    columns:
+      - name: insurance_id
+        tests:
+          - not_null
+          - unique

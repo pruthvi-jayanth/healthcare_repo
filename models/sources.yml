@@ -1,0 +1,16 @@
+version: 2
+
+sources:
+  - name: healthcare
+    database: healthcare_db
+    schema: public
+    tables:
+      - name: raw_visits
+        description: table is about visits of patients
+      - name: raw_procedures
+      - name: raw_providers
+      - name: raw_patients
+      - name: raw_insurance
+      - name: raw_cities
+      - name: raw_departments
+      - name: raw_diagnoses
