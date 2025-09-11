@@ -32,3 +32,8 @@ models:
         tests:
           - not_null
           - unique
+  - name: stg_visits
+    columns:
+      - name: visited_date
+        tests:
+          - future_dates

@@ -1,27 +1,30 @@
-{{config(
-    materialized= 'incremental',
-    unique_key= 'patient_id',
-    incremental_strategy= 'merge',
-    on_schema_change= 'sink_all_columns',
-    tags=['staging']
-)}}
-
-with source as (
-    select * from {{source('healthcare', 'raw_patients')}}
-)
+{{ config(
+    materialized='incremental',
+    unique_key='patient_id',
+    incremental_strategy='merge',
+    on_schema_change='append_new_columns'
+) }}
 
 select
-    try_cast("Patient ID"as int) as patient_id,
-    "First Name" as first_name,
-    "Last Name" as last_name,
-    try_cast("Date of Birth" as date) as date_of_birth,
-    "Gender" as gender,
-    "City ID" as city_id,
-    try_cast("Loaded At" as timestamp) as loaded_at,
-    '{{ this.name }}' as _record_source,
-    current_timestamp() as _ingested_at
-from source
+    coalesce("Patient ID", 'unknown') as patient_id,
+    coalesce("Patient Name", 'unknown') as patient_name,
+    case lower("GENDER")
+        when 'male' then 'M'
+        when 'm' then 'M'
+        when 'female' then 'F'
+        when 'f' then 'F'
+        else 'others'
+    end as gender,
+    age,
+    trim("City ID") as city_id,
+    race,
+    current_timestamp() as loaded_at
+from {{ source('healthcare', 'raw_patients') }}
 
 {% if is_incremental() %}
-   where "Loaded At" > (select max("loaded_at") from {{ this }} )
-{% endif %}   
+    -- Instead of filtering on LOADED_AT (which doesn’t exist in the source),
+    -- filter based on new patient_ids not already in the target table
+    where "Patient ID" not in (
+        select patient_id from {{ this }}
+    )
+{% endif %}
